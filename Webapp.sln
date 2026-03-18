@@ -1,0 +1,28 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaatsWebApp", "CaatsWebApp\CaatsWebApp.csproj", "{E3E7B373-4D3B-4AB6-A5DA-7C4D1E68AA11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaatsWebApp.Tests", "CaatsWebApp.Tests\CaatsWebApp.Tests.csproj", "{2D9D03C8-44CF-4EEC-B87E-04A2E2C1F2CB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E3E7B373-4D3B-4AB6-A5DA-7C4D1E68AA11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3E7B373-4D3B-4AB6-A5DA-7C4D1E68AA11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3E7B373-4D3B-4AB6-A5DA-7C4D1E68AA11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3E7B373-4D3B-4AB6-A5DA-7C4D1E68AA11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D9D03C8-44CF-4EEC-B87E-04A2E2C1F2CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D9D03C8-44CF-4EEC-B87E-04A2E2C1F2CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D9D03C8-44CF-4EEC-B87E-04A2E2C1F2CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D9D03C8-44CF-4EEC-B87E-04A2E2C1F2CB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

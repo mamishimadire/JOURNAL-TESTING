@@ -1,0 +1,34 @@
+[INFO] 2026-02-19 03:23:00 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 03:26:29 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 03:40:54 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[WARNING] 2026-02-19 03:44:30 - Failed login attempt for: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 03:44:33 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[WARNING] 2026-02-19 03:51:02 - Failed login attempt for: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[WARNING] 2026-02-19 03:51:14 - Failed login attempt for: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[WARNING] 2026-02-19 03:51:23 - Failed login attempt for: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 03:51:53 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[WARNING] 2026-02-19 03:53:02 - Failed login attempt for: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[WARNING] 2026-02-19 03:56:27 - Failed login attempt for: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 03:56:30 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 04:04:44 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 04:04:52 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 05:07:41 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 05:25:05 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------
+[INFO] 2026-02-19 18:36:37 - User logged in successfully: Mamishi.Madire@sng.gt.com
+--------------------------------------------------------------------------------

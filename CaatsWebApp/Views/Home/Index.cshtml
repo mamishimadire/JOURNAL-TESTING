@@ -1,0 +1,318 @@
+﻿@{
+    ViewData["Title"] = "CAATS v15.1";
+}
+
+<section class="hero">
+    <div class="hero-brand">
+        <img class="hero-logo" src="~/images/caats-logo.png" alt="CAATS System Logo" />
+        <div class="hero-copy">
+            <p class="eyebrow">SNG Grant Thornton | CAATS v15.1</p>
+            <h1>CAATS Dashboard</h1>
+            <p class="hero-author">Author: Mamishi Tonny Madire</p>
+        </div>
+        <div class="hero-tools" aria-label="Dashboard controls">
+            <button id="btnThemeToggle" class="btn-secondary" type="button">Switch to Dark</button>
+            <button id="btnSoundToggle" class="btn-secondary" type="button">Click Sound: On</button>
+        </div>
+    </div>
+</section>
+
+<section class="grid">
+    <article class="panel">
+        <h2>Step 1: Connect SQL</h2>
+        <div class="form-grid">
+            <label>Server <input id="server" value="(localdb)\MSSQLLocalDB" /></label>
+            <label>Driver
+                <select id="driver">
+                    <option>ODBC Driver 18 for SQL Server</option>
+                    <option selected>ODBC Driver 17 for SQL Server</option>
+                    <option>SQL Server</option>
+                </select>
+            </label>
+            <label class="inline"><input id="trusted" type="checkbox" checked /> Windows Authentication</label>
+            <button id="btnConnect" class="btn-primary">Connect</button>
+        </div>
+        <label>Database
+            <select id="database"></select>
+        </label>
+        <button id="btnUseDb" class="btn-secondary">Use Database</button>
+    </article>
+
+    <article class="panel">
+        <h2>Step 2: Tables</h2>
+        <div class="form-grid">
+            <label>GL Table <select id="glTable"></select></label>
+            <label>TB Table <select id="tbTable"></select></label>
+        </div>
+        <button id="btnPreview" class="btn-secondary">Preview Tables</button>
+        <div id="preview" class="preview-grid">
+            <div class="table-wrap sql-wrap">
+                <div id="glPreviewTitle" class="table-title">GL Preview</div>
+                <div id="glPreviewTable"></div>
+            </div>
+            <div class="table-wrap sql-wrap">
+                <div id="tbPreviewTitle" class="table-title">TB Preview</div>
+                <div id="tbPreviewTable"></div>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel panel-wide">
+        <h2>Step 3: Column Mapping</h2>
+        <div id="mapReconNote" class="summary-strip warm">v11 Recon: Uses gl_raw (original GL before date filter). GL Balance = LAST Balance per Account_number.</div>
+        <div class="action-row mapping-actions">
+            <button id="btnAutoMap" class="btn-secondary">Load Columns &amp; Auto-Map</button>
+            <button id="btnLoadData" class="btn-primary">Load Data</button>
+        </div>
+        <div id="mapSummary" class="summary-strip success">GL: 0 cols | TB: 0 cols -- auto-mapped pending</div>
+
+        <h3 class="map-section-title">GL Column Mapping</h3>
+        <div class="map-grid">
+            <label class="map-row"><span>Account Number * (join key)</span><select id="m_gl_account_number"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Effective / Posting Date *</span><select id="m_gl_posting_date"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Creation / CPU Date</span><select id="m_gl_creation_date"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Journal / Doc ID</span><select id="m_gl_journal_id"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Description / Memo</span><select id="m_gl_description"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>★ Debit Amount Column</span><select id="m_gl_debit"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>★ Credit Amount Column</span><select id="m_gl_credit"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Signed Amount (if no Dr/Cr cols)</span><select id="m_gl_amount_signed"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Absolute Amount</span><select id="m_gl_abs_amount"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Dr/Cr Indicator (S/H or D/C)</span><select id="m_gl_dc_indicator"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Creator / User ID</span><select id="m_gl_user_id"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Financial Period</span><select id="m_gl_period"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Financial Year</span><select id="m_gl_year"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Line Item Number</span><select id="m_gl_line_id"><option>-- Not Available --</option></select></label>
+        </div>
+
+        <h3 class="map-section-title">★ JNL Origin - Classification Column</h3>
+        <div id="autoIndicatorGuide" class="summary-strip">Map the JNL Origin column, then enable SNG GT Manual Rule in Step 4. Origins IN manual list = Manual; all others = Automated.</div>
+        <div class="map-grid">
+            <label class="map-row"><span>JNL Origin (Sage Intacct)</span><select id="m_gl_jnl_origin"><option>-- Not Available --</option></select></label>
+        </div>
+
+        <h3 class="map-section-title">Journal Group Key &amp; Other</h3>
+        <div class="map-grid">
+            <label class="map-row"><span>★ Journal Group Key (Txn_No etc)</span><select id="e_group_col"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>★ GL Balance Column (e.g. Balance)</span><select id="e_gl_recon"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Weekend/Holiday check date</span><select id="e_weekend_date_col"><option>-- Not Available --</option></select></label>
+        </div>
+
+        <h3 class="map-section-title">TB Column Mapping</h3>
+        <div class="map-grid">
+            <label class="map-row"><span>Account Number * (join key)</span><select id="m_tb_account_number"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Account Name / Description</span><select id="m_tb_account_name"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>Opening Balance</span><select id="m_tb_opening_bal"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span>★ Closing Balance * (TB recon key)</span><select id="m_tb_closing_bal"><option>-- Not Available --</option></select></label>
+        </div>
+
+        <button id="btnSaveMap" class="btn-primary">Save Mapping</button>
+    </article>
+
+    <article class="panel panel-wide">
+        <h2>Step 4: Engagement Setup</h2>
+        <div class="action-row">
+            <button id="btnAutoDetect" class="btn-secondary">Auto-Detect GL Profile</button>
+            <div id="profileSummary" class="summary-strip">Load full data, then click Auto-Detect GL Profile.</div>
+        </div>
+        <div id="industryNote" class="summary-strip">Select industry to auto-configure weekend/holiday behavior.</div>
+        <div class="form-grid three">
+            <label>Parent Entity <input id="e_parent" value="" /></label>
+            <label>Client <input id="e_client" value="Client" /></label>
+            <label>Engagement <input id="e_engagement" value="JE Testing" /></label>
+            <label>GL System
+                <select id="e_gl_system">
+                    <option>Custom / Other</option>
+                    <option>SAP</option>
+                    <option selected>Sage Intacct</option>
+                    <option>Sage 300</option>
+                    <option>Oracle</option>
+                    <option>QuickBooks</option>
+                    <option>Microsoft Dynamics</option>
+                    <option>Pastel</option>
+                    <option>Xero</option>
+                </select>
+            </label>
+            <label>Industry
+                <select id="e_industry">
+                    <option selected>Standard (office hours)</option>
+                    <option>Retail (24/7 operations)</option>
+                    <option>Hospitality (24/7)</option>
+                    <option>Manufacturing (shift work)</option>
+                    <option>Healthcare (24/7)</option>
+                    <option>Financial Services</option>
+                    <option>Education</option>
+                    <option>Government</option>
+                    <option>Other</option>
+                </select>
+            </label>
+            <label>FY Start <input id="e_fy_start" type="date" /></label>
+            <label>FY End <input id="e_fy_end" type="date" /></label>
+            <label>Period Start <input id="e_period_start" type="date" /></label>
+            <label>Period End <input id="e_period_end" type="date" /></label>
+            <label>Signing Date <input id="e_signing_date" type="date" /></label>
+            <label>Materiality <input id="e_materiality" type="number" value="10000000" /></label>
+            <label>Performance Materiality <input id="e_perf_mat" type="number" value="7500000" /></label>
+            <label>Min Journal Value <input id="e_min_jv" type="number" value="0" /></label>
+            <label>Low FSLI Threshold <input id="e_low_fsli" type="number" value="10" /></label>
+            <label>Prepared By <input id="e_auditor" value="" /></label>
+            <label>Manager Name <input id="e_manager" value="" /></label>
+            <label>Country Code <input id="e_country" value="ZA" /></label>
+            <label class="inline"><input id="e_weekend_normal" type="checkbox" /> Weekend normal</label>
+            <label class="inline"><input id="e_holiday_normal" type="checkbox" /> Holiday normal</label>
+            <label class="inline"><input id="e_sng_rule" type="checkbox" /> Apply SNG rule</label>
+            <label id="sngOriginsWrap">Manual Origins <input id="e_sng_origins" value="FAJ,GJ,IJ,Journal,OBJ,PYRJ" /></label>
+        </div>
+        <button id="btnSaveEng" class="btn-primary">Save Engagement</button>
+    </article>
+
+    <article class="panel panel-wide">
+        <h2>Step 5: Run Tests</h2>
+        <div id="procImpact" class="summary-strip" style="display:none"></div>
+        <div class="proc-grid" role="table" aria-label="Run tests procedure matrix">
+            <div class="proc-head">Procedure</div>
+            <div class="proc-head center">Manual</div>
+            <div class="proc-head center">Auto</div>
+
+            <div class="proc-row">
+                <label for="proc_completeness">Completeness (GL/TB Recon):</label>
+                <select id="proc_completeness" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_completeness_manual" type="checkbox" checked />
+                <input id="proc_mode_completeness_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_backdated">Backdated Journals:</label>
+                <select id="proc_backdated" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_backdated_manual" type="checkbox" checked />
+                <input id="proc_mode_backdated_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_holiday">Holiday Journals:</label>
+                <select id="proc_holiday" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_holiday_manual" type="checkbox" checked />
+                <input id="proc_mode_holiday_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_round">Round Amount Analysis:</label>
+                <select id="proc_round" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_round_manual" type="checkbox" checked />
+                <input id="proc_mode_round_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_weekend">Weekend Journals:</label>
+                <select id="proc_weekend" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_weekend_manual" type="checkbox" checked />
+                <input id="proc_mode_weekend_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_unbalanced">Unbalanced Journals:</label>
+                <select id="proc_unbalanced" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_unbalanced_manual" type="checkbox" checked />
+                <input id="proc_mode_unbalanced_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_above_mat">Journals Above Materiality:</label>
+                <select id="proc_above_mat" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_above_mat_manual" type="checkbox" checked />
+                <input id="proc_mode_above_mat_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_adj_desc">Adjustment/Correction/Reversal Descriptions:</label>
+                <select id="proc_adj_desc" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_adj_desc_manual" type="checkbox" checked />
+                <input id="proc_mode_adj_desc_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_low_fsli">Low FSLI:</label>
+                <select id="proc_low_fsli" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_low_fsli_manual" type="checkbox" checked />
+                <input id="proc_mode_low_fsli_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_duplicate">Duplicate Entries:</label>
+                <select id="proc_duplicate" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_duplicate_manual" type="checkbox" checked />
+                <input id="proc_mode_duplicate_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_user">User Analysis:</label>
+                <select id="proc_user" class="proc-app"><option>Not Applicable</option><option>Applicable</option></select>
+                <input id="proc_mode_user_manual" type="checkbox" checked />
+                <input id="proc_mode_user_auto" type="checkbox" checked />
+            </div>
+            <div class="proc-row">
+                <label for="proc_benford">Benford's Law Analysis:</label>
+                <select id="proc_benford" class="proc-app"><option>Applicable</option><option>Not Applicable</option></select>
+                <input id="proc_mode_benford_manual" type="checkbox" checked />
+                <input id="proc_mode_benford_auto" type="checkbox" checked />
+            </div>
+        </div>
+        <button id="btnRun" class="btn-danger">Run All Tests</button>
+        <div id="cards" class="cards"></div>
+        <div id="runSummary" class="summary-strip"></div>
+        <h3 class="result-title">Holiday Verification (SA Calendar vs Posting Date)</h3>
+        <div id="holidayVerificationSummary" class="summary-strip info">Run tests to see matched holiday dates and names.</div>
+        <div id="holidayVerificationWrap" class="table-wrap"></div>
+        <h3 class="result-title">GL/TB Reconciliation Results</h3>
+        <div id="reconTableWrap" class="table-wrap"></div>
+        <h3 class="result-title">Benford Analysis Results</h3>
+        <div id="benfordTableWrap" class="table-wrap"></div>
+        <h3 class="result-title">Total Risk Score Summary</h3>
+        <div id="riskSummaryWrap" class="table-wrap"></div>
+        <h3 class="result-title">Full Z_USER_ANALYSIS Breakdown</h3>
+        <div id="userAnalysisFullWrap" class="table-wrap"></div>
+        <h3 class="result-title">Procedure Results Ranked</h3>
+        <div id="procedureRankedWrap" class="table-wrap"></div>
+        <h3 class="result-title">IRI Ranked Summary</h3>
+        <div id="iriRankedWrap" class="table-wrap"></div>
+        <h3 class="result-title">IRI Triggered Detail</h3>
+        <div id="iriDetailWrap" class="table-wrap"></div>
+    </article>
+
+    <article class="panel">
+        <h2>Step 6: Export</h2>
+        <label>Output Folder (defaults to current user's Desktop) <input id="outFolder" value="%USERPROFILE%\\Desktop\\JE_Audit" /></label>
+        <div class="checks">
+            <label><input id="expWord" type="checkbox" checked /> Word</label>
+            <label><input id="expExcel" type="checkbox" checked /> Excel</label>
+            <label><input id="expCsv" type="checkbox" /> CSV</label>
+        </div>
+        <button id="btnExport" class="btn-primary">Generate Reports</button>
+        <div id="exportLinks" class="summary-strip" style="display:none"></div>
+    </article>
+
+    <article class="panel panel-wide">
+        <h2>Step 7: Data Explorer</h2>
+        <div class="form-grid">
+            <label>Filter
+                <select id="x_filter">
+                    <option>All Records</option>
+                    <option>Weekend (exceptions)</option>
+                    <option>Weekend (all)</option>
+                    <option>Holiday (exceptions)</option>
+                    <option>Holiday (all)</option>
+                    <option>Backdated Journals</option>
+                    <option>Adjustment/Correction/Reversal Descriptions</option>
+                    <option>Journals Above Materiality</option>
+                    <option>Round Amount Analysis</option>
+                    <option>Duplicate Entries</option>
+                    <option>Unbalanced Journals</option>
+                    <option>Low FSLI</option>
+                    <option>Manual Only</option>
+                    <option>Automated Only</option>
+                </select>
+            </label>
+            <label>User <select id="x_user"><option>All</option></select></label>
+            <label>Account <select id="x_account"><option>All</option></select></label>
+            <label>Journal Key <select id="x_journal"><option>All</option></select></label>
+            <label>Rows <input id="x_rows" type="number" min="10" max="2000" value="100" /></label>
+        </div>
+        <button id="btnExplore" class="btn-primary">Apply Explorer Filter</button>
+        <div id="exploreStats" class="summary-strip"></div>
+        <div id="exploreTableWrap" class="table-wrap"></div>
+    </article>
+</section>
+
+<section class="panel">
+    <h2>Status</h2>
+    <div id="status" class="status">Ready.</div>
+</section>
