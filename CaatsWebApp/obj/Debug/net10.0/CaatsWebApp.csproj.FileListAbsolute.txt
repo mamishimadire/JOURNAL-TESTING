@@ -139,5 +139,6 @@ C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\refint\Caat
 C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\CaatsWebApp.pdb
 C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\CaatsWebApp.genruntimeconfig.cache
 C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\ref\CaatsWebApp.dll
-C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\compressed\a4wt5zgk20-{0}-zpu3q45f67-zpu3q45f67.gz
-C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\compressed\83r48uc3fm-{0}-cw6r4f2iz2-cw6r4f2iz2.gz
+C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\CaatsWebApp.sourcelink.json
+C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\compressed\a4wt5zgk20-{0}-ipb6vbjojl-ipb6vbjojl.gz
+C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp\obj\Debug\net10.0\compressed\83r48uc3fm-{0}-aenuhd3qsq-aenuhd3qsq.gz

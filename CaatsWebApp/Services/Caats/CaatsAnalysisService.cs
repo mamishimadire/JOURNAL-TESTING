@@ -43,6 +43,7 @@ public sealed class CaatsAnalysisService
 
     private static List<MasterRow> BuildMasterRows(List<Dictionary<string, object?>> glRows, Dictionary<string, string> glMap, EngagementSettings eng)
     {
+        var isSapFi = IsSapMode(eng.GlSystem);
         var sngOrigins = (eng.SngOriginsRaw ?? string.Empty)
             .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(x => x.ToUpperInvariant())
@@ -81,7 +82,15 @@ public sealed class CaatsAnalysisService
             var hasSigned = glMap.TryGetValue("amount_signed", out var signedCol) && row.ContainsKey(signedCol);
             var hasAbs = glMap.TryGetValue("abs_amount", out var absCol) && row.ContainsKey(absCol);
 
-            if (hasDr && hasCr)
+            if (isSapFi && hasSigned)
+            {
+                // SAP FI mode: single signed column (+ credit, - debit).
+                signed = SafeDecimal(row[signedCol!]);
+                abs = Math.Abs(signed);
+                debit = signed < 0 ? abs : 0;
+                credit = signed > 0 ? signed : 0;
+            }
+            else if (hasDr && hasCr)
             {
                 debit = Math.Abs(SafeDecimal(row[drCol!]));
                 credit = Math.Abs(SafeDecimal(row[crCol!]));
@@ -114,7 +123,13 @@ public sealed class CaatsAnalysisService
             var isManual = false;
             var manualReason = string.Empty;
 
-            if (eng.SngRule)
+            if (isSapFi)
+            {
+                // SAP FI manual rule: Type/BLART = SA is manual; all others automated.
+                isManual = string.Equals(origin, "SA", StringComparison.OrdinalIgnoreCase);
+                manualReason = isManual ? $"SNG:{origin}" : $"SNG-Auto:{origin}";
+            }
+            else if (eng.SngRule)
             {
                 isManual = sngOrigins.Contains(origin.ToUpperInvariant());
                 manualReason = isManual ? $"SNG:{origin}" : $"SNG-Auto:{origin}";
@@ -301,8 +316,11 @@ public sealed class CaatsAnalysisService
         var glAcctCol = glMap.GetValueOrDefault("account_number", string.Empty);
         var glDrCol = glMap.GetValueOrDefault("debit", string.Empty);
         var glCrCol = glMap.GetValueOrDefault("credit", string.Empty);
-        var glBalCol = string.IsNullOrWhiteSpace(eng.GlReconAmountColumn) ? glMap.GetValueOrDefault("amount_signed", string.Empty) : eng.GlReconAmountColumn;
+        var isSapFi = IsSapMode(eng.GlSystem);
+        var glSignedCol = glMap.GetValueOrDefault("amount_signed", string.Empty);
+        var glBalCol = string.IsNullOrWhiteSpace(eng.GlReconAmountColumn) ? glSignedCol : eng.GlReconAmountColumn;
         var hasReconBalanceColumn = !string.IsNullOrWhiteSpace(glBalCol) && glRawRows.Any(r => r.ContainsKey(glBalCol));
+        var hasSignedColumn = !string.IsNullOrWhiteSpace(glSignedCol) && glRawRows.Any(r => r.ContainsKey(glSignedCol));
 
         var glValid = glRawRows
             .Select(r => new
@@ -310,29 +328,53 @@ public sealed class CaatsAnalysisService
                 Acct = NormalizeAcct(glAcctCol.Length > 0 && r.TryGetValue(glAcctCol, out var acctVal) ? acctVal?.ToString() : string.Empty),
                 Debit = glDrCol.Length > 0 && r.TryGetValue(glDrCol, out var drVal) ? SafeDecimal(drVal) : 0m,
                 Credit = glCrCol.Length > 0 && r.TryGetValue(glCrCol, out var crVal) ? SafeDecimal(crVal) : 0m,
+                Signed = hasSignedColumn && glSignedCol.Length > 0 && r.TryGetValue(glSignedCol, out var signedVal) ? SafeDecimal(signedVal) : 0m,
                 Balance = hasReconBalanceColumn && glBalCol.Length > 0 && r.TryGetValue(glBalCol, out var balVal) ? SafeDecimal(balVal) : 0m,
             })
             .Where(x => !string.IsNullOrWhiteSpace(x.Acct) && x.Acct != "0")
             .ToList();
 
-        var glGrouped = glValid
-            .GroupBy(x => x.Acct)
-            .ToDictionary(
-                g => g.Key,
-                g => new
-                {
-                    GlDebit = g.Sum(x => Math.Abs(x.Debit)),
-                    GlCredit = g.Sum(x => Math.Abs(x.Credit)),
-                    GlBalance = hasReconBalanceColumn ? g.Last().Balance : g.Sum(x => Math.Abs(x.Credit)) - g.Sum(x => Math.Abs(x.Debit)),
-                },
-                StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, (decimal GlDebit, decimal GlCredit, decimal GlBalance)> glGrouped;
+        string lookupColumn;
+        string methodLabel;
+
+        if (isSapFi && hasSignedColumn)
+        {
+            // SAP SUMIF method: sum signed amounts by account key.
+            glGrouped = glValid
+                .GroupBy(x => x.Acct)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (
+                        GlDebit: g.Where(x => x.Signed < 0m).Sum(x => Math.Abs(x.Signed)),
+                        GlCredit: g.Where(x => x.Signed > 0m).Sum(x => x.Signed),
+                        GlBalance: g.Sum(x => x.Signed)
+                    ),
+                    StringComparer.OrdinalIgnoreCase);
+            lookupColumn = glSignedCol;
+            methodLabel = "SUMIF signed by Account_number";
+        }
+        else
+        {
+            glGrouped = glValid
+                .GroupBy(x => x.Acct)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (
+                        GlDebit: g.Sum(x => Math.Abs(x.Debit)),
+                        GlCredit: g.Sum(x => Math.Abs(x.Credit)),
+                        GlBalance: hasReconBalanceColumn ? g.Last().Balance : g.Sum(x => Math.Abs(x.Credit)) - g.Sum(x => Math.Abs(x.Debit))
+                    ),
+                    StringComparer.OrdinalIgnoreCase);
+            lookupColumn = hasReconBalanceColumn ? glBalCol : "Credit - Debit (fallback)";
+            methodLabel = hasReconBalanceColumn ? "LAST value per Account_number" : "Credit - Debit aggregate";
+        }
 
         var allAccounts = tbDedup.Keys.Union(glGrouped.Keys, StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var lookupColumn = hasReconBalanceColumn ? glBalCol : "Credit - Debit (fallback)";
-        var glSource = $"DB: {dbName} | Table: {glTableName} | Col: {lookupColumn} | Method: LAST value per Account_number (gl_raw - pre-date-filter)";
+        var glSource = $"DB: {dbName} | Table: {glTableName} | Col: {lookupColumn} | Method: {methodLabel} (gl_raw - pre-date-filter)";
 
         return allAccounts.Select(acct =>
         {
@@ -762,6 +804,13 @@ public sealed class CaatsAnalysisService
         }
 
         return true;
+    }
+
+    private static bool IsSapMode(string? glSystem)
+    {
+        var sys = (glSystem ?? string.Empty).Trim();
+        return string.Equals(sys, "SAP", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(sys, "SAP FI", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string NormalizeAcct(string? val)

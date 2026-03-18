@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "uZWN6xALbQU=",
+  "dgSpecHash": "WesZ3GbjL7E=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Mamishi.Madire\\Desktop\\Webapp\\CaatsWebApp\\CaatsWebApp.csproj",
+  "projectFilePath": "c:\\Users\\Mamishi.Madire\\Desktop\\Webapp\\CaatsWebApp\\CaatsWebApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Mamishi.Madire\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\Mamishi.Madire\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",

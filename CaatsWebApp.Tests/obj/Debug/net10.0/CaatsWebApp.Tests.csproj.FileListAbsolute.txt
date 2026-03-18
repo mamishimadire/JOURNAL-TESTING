@@ -151,3 +151,4 @@ C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp.Tests\obj\Debug\net10.0\refin
 C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp.Tests\obj\Debug\net10.0\CaatsWebApp.Tests.pdb
 C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp.Tests\obj\Debug\net10.0\CaatsWebApp.Tests.genruntimeconfig.cache
 C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp.Tests\obj\Debug\net10.0\ref\CaatsWebApp.Tests.dll
+C:\Users\Mamishi.Madire\Desktop\Webapp\CaatsWebApp.Tests\obj\Debug\net10.0\CaatsWebApp.Tests.sourcelink.json

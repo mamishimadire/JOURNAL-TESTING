@@ -267,10 +267,13 @@ public sealed class CaatsController : ControllerBase
 
         var hasDebit = HasColumnLike(_state.GlData, _state.GlMap.GetValueOrDefault("debit"), "debit", "dr");
         var hasCredit = HasColumnLike(_state.GlData, _state.GlMap.GetValueOrDefault("credit"), "credit", "cr");
+        var hasSigned = HasColumnLike(_state.GlData, _state.GlMap.GetValueOrDefault("amount_signed"), "general ledger amt", "amt in loc.cur", "dmbtr", "signed", "amount");
         var hasBalance = HasColumnLike(_state.GlData, _state.Engagement.GlReconAmountColumn, "balance", "amount");
 
         var amountStructure = hasDebit && hasCredit
             ? "debit_credit"
+            : hasSigned
+                ? "signed_col"
             : hasBalance
                 ? "balance_col"
                 : "unknown";
@@ -294,6 +297,18 @@ public sealed class CaatsController : ControllerBase
     [HttpPost("engagement")]
     public IActionResult SaveEngagement([FromBody] EngagementSettings req)
     {
+        if (string.Equals(req.GlSystem, "SAP FI", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(req.GlSystem, "SAP", StringComparison.OrdinalIgnoreCase))
+        {
+            req.SngRule = true;
+            req.SngOriginsRaw = "SA";
+            if (string.IsNullOrWhiteSpace(req.GlReconAmountColumn))
+            {
+                // SAP FI recon should default to signed amount SUMIF behavior.
+                req.GlReconAmountColumn = string.Empty;
+            }
+        }
+
         _state.Engagement = req;
         return Ok(new GenericResponse { Success = true, Message = "Engagement saved." });
     }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CaatsWebApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3fa9a565bac3c1897fe2bd4a96ac3aebebdcca4f")]
 [assembly: System.Reflection.AssemblyProductAttribute("CaatsWebApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CaatsWebApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

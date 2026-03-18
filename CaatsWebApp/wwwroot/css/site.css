@@ -128,6 +128,60 @@ html, body {
   font-size: 0.9rem;
 }
 
+.system-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(2, 6, 23, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.system-gate.active {
+  display: flex;
+}
+
+.system-gate-card {
+  width: min(640px, 96vw);
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
+  padding: 1.2rem;
+}
+
+.system-gate-eyebrow {
+  margin: 0;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.74rem;
+  font-family: "Consolas", "Cascadia Code", monospace;
+}
+
+.system-gate-card h2 {
+  margin: 0.45rem 0 0.5rem;
+}
+
+.system-gate-text {
+  margin: 0;
+  color: var(--sub);
+}
+
+.system-gate-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+body.system-locked {
+  overflow: hidden;
+}
+
 .grid {
   display: grid;
   gap: 1rem;
@@ -337,6 +391,10 @@ button {
   gap: 0.55rem;
 }
 
+.map-row.is-hidden {
+  display: none;
+}
+
 .map-row span {
   text-align: right;
   color: #cbd5e1;
@@ -526,6 +584,10 @@ button {
   .hero-logo {
     width: 164px;
     height: 68px;
+  }
+
+  .system-gate-actions {
+    flex-direction: column;
   }
 
   .grid {

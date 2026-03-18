@@ -17,6 +17,18 @@
     </div>
 </section>
 
+<section id="systemGate" class="system-gate" aria-live="polite">
+    <div class="system-gate-card">
+        <p class="system-gate-eyebrow">System Selection Required</p>
+        <h2>Select Your GL System</h2>
+        <p class="system-gate-text">Choose the mode before using CAATS. Sage uses legacy behavior. SAP applies signed amount logic (+ = Credit, - = Debit) and SAP FI reconciliation rules.</p>
+        <div class="system-gate-actions">
+            <button id="btnModeSage" class="btn-secondary" type="button">Use Sage (Legacy)</button>
+            <button id="btnModeSap" class="btn-primary" type="button">Use SAP (Upgraded)</button>
+        </div>
+    </div>
+</section>
+
 <section class="grid">
     <article class="panel">
         <h2>Step 1: Connect SQL</h2>
@@ -73,9 +85,9 @@
             <label class="map-row"><span>Creation / CPU Date</span><select id="m_gl_creation_date"><option>-- Not Available --</option></select></label>
             <label class="map-row"><span>Journal / Doc ID</span><select id="m_gl_journal_id"><option>-- Not Available --</option></select></label>
             <label class="map-row"><span>Description / Memo</span><select id="m_gl_description"><option>-- Not Available --</option></select></label>
-            <label class="map-row"><span>★ Debit Amount Column</span><select id="m_gl_debit"><option>-- Not Available --</option></select></label>
-            <label class="map-row"><span>★ Credit Amount Column</span><select id="m_gl_credit"><option>-- Not Available --</option></select></label>
-            <label class="map-row"><span>Signed Amount (if no Dr/Cr cols)</span><select id="m_gl_amount_signed"><option>-- Not Available --</option></select></label>
+            <label id="m_gl_debit_row" class="map-row"><span id="lbl_gl_debit">★ Debit Amount Column</span><select id="m_gl_debit"><option>-- Not Available --</option></select></label>
+            <label id="m_gl_credit_row" class="map-row"><span id="lbl_gl_credit">★ Credit Amount Column</span><select id="m_gl_credit"><option>-- Not Available --</option></select></label>
+            <label id="m_gl_amount_signed_row" class="map-row"><span id="lbl_gl_amount_signed">Signed Amount (if no Dr/Cr cols)</span><select id="m_gl_amount_signed"><option>-- Not Available --</option></select></label>
             <label class="map-row"><span>Absolute Amount</span><select id="m_gl_abs_amount"><option>-- Not Available --</option></select></label>
             <label class="map-row"><span>Dr/Cr Indicator (S/H or D/C)</span><select id="m_gl_dc_indicator"><option>-- Not Available --</option></select></label>
             <label class="map-row"><span>Creator / User ID</span><select id="m_gl_user_id"><option>-- Not Available --</option></select></label>
@@ -84,10 +96,10 @@
             <label class="map-row"><span>Line Item Number</span><select id="m_gl_line_id"><option>-- Not Available --</option></select></label>
         </div>
 
-        <h3 class="map-section-title">★ JNL Origin - Classification Column</h3>
+        <h3 id="mapJnlOriginTitle" class="map-section-title">★ JNL Origin - Classification Column</h3>
         <div id="autoIndicatorGuide" class="summary-strip">Map the JNL Origin column, then enable SNG GT Manual Rule in Step 4. Origins IN manual list = Manual; all others = Automated.</div>
         <div class="map-grid">
-            <label class="map-row"><span>JNL Origin (Sage Intacct)</span><select id="m_gl_jnl_origin"><option>-- Not Available --</option></select></label>
+            <label class="map-row"><span id="lbl_gl_jnl_origin">JNL Origin (Sage Intacct)</span><select id="m_gl_jnl_origin"><option>-- Not Available --</option></select></label>
         </div>
 
         <h3 class="map-section-title">Journal Group Key &amp; Other</h3>
@@ -121,15 +133,8 @@
             <label>Engagement <input id="e_engagement" value="JE Testing" /></label>
             <label>GL System
                 <select id="e_gl_system">
-                    <option>Custom / Other</option>
-                    <option>SAP</option>
                     <option selected>Sage Intacct</option>
-                    <option>Sage 300</option>
-                    <option>Oracle</option>
-                    <option>QuickBooks</option>
-                    <option>Microsoft Dynamics</option>
-                    <option>Pastel</option>
-                    <option>Xero</option>
+                    <option>SAP FI</option>
                 </select>
             </label>
             <label>Industry

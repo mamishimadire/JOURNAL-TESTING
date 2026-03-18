@@ -50,6 +50,96 @@ const playClickSound = () => {
 const $ = (id) => document.getElementById(id);
 const NA_OPTION = "-- Not Available --";
 
+const isSapSelected = () => {
+	const sys = ($("e_gl_system")?.value || "").trim().toUpperCase();
+	return sys === "SAP" || sys === "SAP FI";
+};
+
+const setSystemReconNote = () => {
+	const note = $("mapReconNote");
+	if (!note) {
+		return;
+	}
+
+	if (isSapSelected()) {
+		note.className = "summary-strip success";
+		note.innerHTML = "SAP mode: Uses signed amount (+ = Credit, - = Debit). TB/GL reconciliation uses SUMIF-style signed totals by Account_number.";
+		return;
+	}
+
+	note.className = "summary-strip warm";
+	note.innerHTML = "Sage legacy mode: Uses original behavior. Recon uses gl_raw before date filter with configured balance/credit-debit method.";
+};
+
+const setSelectToNa = (id) => {
+	const sel = $(id);
+	if (!sel) {
+		return;
+	}
+	const hasNa = Array.from(sel.options).some((opt) => opt.value === NA_OPTION);
+	if (hasNa) {
+		sel.value = NA_OPTION;
+	}
+};
+
+const updateMappingModeUi = () => {
+	const sapMode = isSapSelected();
+	$("m_gl_debit_row")?.classList.toggle("is-hidden", sapMode);
+	$("m_gl_credit_row")?.classList.toggle("is-hidden", sapMode);
+
+	const signedLabel = $("lbl_gl_amount_signed");
+	if (signedLabel) {
+		signedLabel.textContent = sapMode
+			? "★ SAP Signed Amount (+ = Cr, - = Dr)"
+			: "Signed Amount (if no Dr/Cr cols)";
+	}
+
+	const jnlTitle = $("mapJnlOriginTitle");
+	if (jnlTitle) {
+		jnlTitle.textContent = sapMode
+			? "★ JNL Origin / SAP Type (BLART) - Classification Column"
+			: "★ JNL Origin - Classification Column";
+	}
+
+	const jnlLabel = $("lbl_gl_jnl_origin");
+	if (jnlLabel) {
+		jnlLabel.textContent = sapMode
+			? "JNL Origin / SAP Type (BLART)"
+			: "JNL Origin (Sage Intacct)";
+	}
+
+	if (sapMode) {
+		setSelectToNa("m_gl_debit");
+		setSelectToNa("m_gl_credit");
+	}
+
+	showAutoIndicatorGuide();
+};
+
+const setSystemGateVisible = (visible) => {
+	const gate = $("systemGate");
+	if (!gate) {
+		return;
+	}
+	gate.classList.toggle("active", visible);
+	document.body.classList.toggle("system-locked", visible);
+};
+
+const applyStartupSystem = (mode) => {
+	const sel = $("e_gl_system");
+	if (!sel) {
+		return;
+	}
+
+	sel.value = mode === "sap" ? "SAP FI" : "Sage Intacct";
+	syncSystemProfile();
+	setSystemReconNote();
+	setSystemGateVisible(false);
+	status(mode === "sap"
+		? "SAP mode selected. Signed amount (+ = Credit, - = Debit) and SAP FI rules are active."
+		: "Sage mode selected. Legacy CAATS behavior is active.");
+};
+
 const applyTheme = (theme) => {
 	const isDark = theme === "dark";
 	document.body.classList.toggle("theme-dark", isDark);
@@ -220,21 +310,21 @@ const autoMapFromCurrentColumns = () => {
 	const tb = state.tbColumns;
 
 	const glMap = {
-		account_number: pickByHints(gl, ["account_number", "account_as_tb", "hkont", "acctno", "gl_account"]),
-		posting_date: pickByHints(gl, ["posted_dt", "doc_dt", "budat", "posting_date", "txndate"]),
-		creation_date: pickByHints(gl, ["cpudt", "creation_date", "entrydate", "doc_dt"]),
-		journal_id: pickByHints(gl, ["doc", "belnr", "journal_id", "jnl", "docno", "txn_no"]),
+		account_number: pickByHints(gl, ["account_number", "account_as_tb", "hkont", "acctno", "gl_account", "g/l account"]),
+		posting_date: pickByHints(gl, ["pstng date", "posted_dt", "doc_dt", "budat", "posting_date", "txndate"]),
+		creation_date: pickByHints(gl, ["cpudt", "doc. date", "creation_date", "entrydate", "doc_dt"]),
+		journal_id: pickByHints(gl, ["documentno", "doc", "belnr", "journal_id", "jnl", "docno", "txn_no"]),
 		description: pickByHints(gl, ["memo_description", "memo/description", "description", "memo", "bktxt"]),
 		debit: pickByHints(gl, ["debit", "dr", "debit_amount"]),
 		credit: pickByHints(gl, ["credit", "cr", "credit_amount"]),
-		amount_signed: pickByHints(gl, ["signed_amount", "amount_signed", "balance", "amount", "dmbtr"]),
+		amount_signed: pickByHints(gl, ["general ledger amt", "amt in loc.cur.", "signed_amount", "amount_signed", "balance", "amount", "dmbtr"]),
 		abs_amount: pickByHints(gl, ["abs_amount", "absolute_amount", "amount_abs"]),
 		dc_indicator: pickByHints(gl, ["shkzg", "dc", "d/c", "drcr"]),
 		user_id: pickByHints(gl, ["usnam", "creator_id", "enteredby", "user", "posted by"]),
 		period: pickByHints(gl, ["financial_period", "monat", "period", "prd"]),
 		year: pickByHints(gl, ["financial_year", "gjahr", "year"]),
 		line_id: pickByHints(gl, ["line_item_number", "line_id", "line", "item_no"]),
-		jnl_origin: pickByHints(gl, ["jnl", "journal_origin", "jnl_origin", "origin"]),
+		jnl_origin: pickByHints(gl, ["type", "blart", "doc_type", "jnl", "journal_origin", "jnl_origin", "origin"]),
 	};
 
 	const tbMap = {
@@ -270,10 +360,17 @@ const autoMapFromCurrentColumns = () => {
 		$("e_weekend_date_col").value = glMap.posting_date;
 	}
 
-	const reconCol = pickByHints(gl, ["balance", "amount", "signed_amount", "dmbtr"]);
+	const reconCol = pickByHints(gl, ["general ledger amt", "amt in loc.cur.", "balance", "amount", "signed_amount", "dmbtr"]);
 	if (reconCol) {
 		$("e_gl_recon").value = reconCol;
 	}
+
+	if (isSapSelected()) {
+		$("e_sng_rule").checked = true;
+		$("e_sng_origins").value = "SA";
+	}
+
+	updateMappingModeUi();
 
 	const required = {
 		glAccount: !!glMap.account_number,
@@ -418,6 +515,32 @@ const applyIndustryRules = () => {
 	}
 };
 
+const syncSystemProfile = () => {
+	const sys = $("e_gl_system")?.value || "Sage Intacct";
+	const sapMode = isSapSelected();
+	updateMappingModeUi();
+	if (sapMode) {
+		$("e_sng_rule").checked = true;
+		$("e_sng_origins").value = "SA";
+		toggleSngOrigins();
+		showAutoIndicatorGuide();
+		const guide = $("autoIndicatorGuide");
+		if (guide) {
+			guide.className = "summary-strip success";
+			guide.innerHTML = "SAP FI active: Manual rule is fixed to Type/BLART = SA. All other SAP types are Automated. Reconciliation uses signed-amount SUMIF by account.";
+		}
+		return;
+	}
+
+	if (sys === "Sage Intacct") {
+		$("e_sng_rule").checked = true;
+		$("e_sng_origins").value = "FAJ,GJ,IJ,Journal,OBJ,PYRJ";
+	}
+
+	toggleSngOrigins();
+	showAutoIndicatorGuide();
+};
+
 const toggleSngOrigins = () => {
 	const wrap = $("sngOriginsWrap");
 	if (!wrap) {
@@ -434,12 +557,13 @@ const showAutoIndicatorGuide = () => {
 
 	const jnl = $("m_gl_jnl_origin")?.value || NA_OPTION;
 	const sng = $("e_sng_rule")?.checked;
+	const jnlLabel = isSapSelected() ? "JNL Origin / SAP Type (BLART)" : "JNL Origin";
 
 	if (sng) {
 		host.className = "summary-strip success";
 		host.innerHTML = jnl !== NA_OPTION
-			? `SNG GT rule is ON: classification uses <b>JNL Origin</b> (<b>${esc(jnl)}</b>). Manual = origin in Manual Origins list; Automated = all other origins.`
-			: "SNG GT rule is ON, but JNL Origin is not mapped yet. Map JNL Origin to classify Manual vs Automated by origin list.";
+			? `SNG GT rule is ON: classification uses <b>${esc(jnlLabel)}</b> (<b>${esc(jnl)}</b>). Manual = origin in Manual Origins list; Automated = all other origins.`
+			: `SNG GT rule is ON, but ${esc(jnlLabel)} is not mapped yet. Map ${esc(jnlLabel)} to classify Manual vs Automated by origin list.`;
 		return;
 	}
 
@@ -664,8 +788,13 @@ $("btnAutoMap")?.addEventListener("click", () => run(async () => {
 $("btnSaveMap")?.addEventListener("click", () => run(async () => {
 	const glKeys = ["account_number", "posting_date", "creation_date", "journal_id", "description", "debit", "credit", "amount_signed", "abs_amount", "dc_indicator", "user_id", "period", "year", "line_id", "jnl_origin"];
 	const tbKeys = ["account_number", "account_name", "opening_bal", "closing_bal"];
+	const glMap = readMap("m_gl", glKeys);
+	if (isSapSelected()) {
+		delete glMap.debit;
+		delete glMap.credit;
+	}
 	await api("/api/caats/mapping", "POST", {
-		gl: readMap("m_gl", glKeys),
+		gl: glMap,
 		tb: readMap("m_tb", tbKeys),
 	});
 	status("Column mapping saved.");
@@ -686,7 +815,7 @@ $("btnSaveEng")?.addEventListener("click", () => run(async () => {
 		engagement: $("e_engagement").value,
 		glSystem: $("e_gl_system").value,
 		industry: $("e_industry").value,
-		sngOriginsRaw: $("e_sng_origins").value,
+		sngOriginsRaw: isSapSelected() ? "SA" : $("e_sng_origins").value,
 		journalGroupColumn: $("e_group_col").value === NA_OPTION ? "" : $("e_group_col").value,
 		weekendDateColumn: $("e_weekend_date_col")?.value === NA_OPTION ? "" : $("e_weekend_date_col")?.value || "",
 		glReconAmountColumn: $("e_gl_recon").value === NA_OPTION ? "" : $("e_gl_recon").value,
@@ -704,7 +833,7 @@ $("btnSaveEng")?.addEventListener("click", () => run(async () => {
 		countryCode: $("e_country").value,
 		weekendNormal: $("e_weekend_normal").checked,
 		holidayNormal: $("e_holiday_normal").checked,
-		sngRule: $("e_sng_rule").checked,
+		sngRule: isSapSelected() ? true : $("e_sng_rule").checked,
 	});
 	status("Engagement settings saved.");
 }, $("btnSaveEng")));
@@ -741,17 +870,26 @@ $("btnAutoDetect")?.addEventListener("click", () => run(async () => {
 }, $("btnAutoDetect")));
 
 $("e_industry")?.addEventListener("change", applyIndustryRules);
+$("e_gl_system")?.addEventListener("change", () => {
+	syncSystemProfile();
+	setSystemReconNote();
+});
 $("e_sng_rule")?.addEventListener("change", toggleSngOrigins);
 $("e_sng_rule")?.addEventListener("change", showAutoIndicatorGuide);
 $("e_sng_rule")?.addEventListener("change", syncProcedureModesBySng);
 $("m_gl_jnl_origin")?.addEventListener("change", showAutoIndicatorGuide);
+$("btnModeSage")?.addEventListener("click", () => applyStartupSystem("sage"));
+$("btnModeSap")?.addEventListener("click", () => applyStartupSystem("sap"));
 applyIndustryRules();
 toggleSngOrigins();
 showAutoIndicatorGuide();
+syncSystemProfile();
+setSystemReconNote();
 syncProcedureModesBySng();
 wireProcedureImpact();
 initUiPreferences();
 initDefaultOutputFolder();
+setSystemGateVisible(true);
 
 $("btnRun")?.addEventListener("click", () => run(async () => {
 	status("Running CAATS tests...");
